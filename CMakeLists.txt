@@ -3,4 +3,7 @@ project(BgfxTest)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(BgfxTest main.cpp)
+add_executable(BgfxTest demo/main.cpp)
+
+add_subdirectory(library)
+target_link_libraries(${PROJECT_NAME} PRIVATE UIKit)
