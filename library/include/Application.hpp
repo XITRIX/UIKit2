@@ -6,5 +6,5 @@
 
 class Application {
 public:
-    static void test();
+    static int run();
 };

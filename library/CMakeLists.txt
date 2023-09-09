@@ -1,19 +1,25 @@
 set(UIKIT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 set(EXTERN_PATH ${UIKIT_PATH}/extern)
 
-set(UIKIT_SRC)
+set(UIKIT_SRC src/Video.cpp)
 set(UIKIT_SOURCE)
 set(UIKIT_INCLUDE)
 set(UIKIT_PLATFORM_LIBS)
 
 # Add BGFX
 add_subdirectory(${EXTERN_PATH}/bgfx.cmake EXCLUDE_FROM_ALL)
+list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/bgfx.cmake/bx/include)
 
 # Add SDL
 set(SDL_SHARED OFF)
 set(SDL_STATIC ON)
 add_subdirectory(${EXTERN_PATH}/SDL EXCLUDE_FROM_ALL)
 find_package(SDL2 REQUIRED SDL2-static SDL2main)
+
+# Add GLFW
+#add_subdirectory(${EXTERN_PATH}/glfw EXCLUDE_FROM_ALL)
+#list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/glfw/include)
+#list(APPEND CMAKE_SYSTEM_PREFIX_PATH /opt/homebrew/lib)
 
 # Set UIKit's Includes
 list(APPEND UIKIT_INCLUDE
@@ -44,4 +50,5 @@ target_link_libraries(UIKit
         bgfx
         SDL2::SDL2-static
         SDL2::SDL2main
+#        glfw
         ${UIKIT_PLATFORM_LIBS})

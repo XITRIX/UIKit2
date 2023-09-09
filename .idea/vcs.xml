@@ -2,9 +2,11 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/library/extern/SDL" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/library/extern/bgfx.cmake" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/library/extern/bgfx.cmake/bgfx" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/library/extern/bgfx.cmake/bimg" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/library/extern/bgfx.cmake/bx" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/library/extern/glfw" vcs="Git" />
   </component>
 </project>
