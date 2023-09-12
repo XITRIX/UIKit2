@@ -30,13 +30,29 @@ SDLVideo::SDLVideo() {
 // Create a GLFW window without an OpenGL context.
     shared = this;
 //    glfwSetErrorCallback(glfw_errorCallback);
-    SDL_Init(0 | SDL_INIT_GAMECONTROLLER);
+    int res;
+    res = SDL_Init(SDL_INIT_GAMECONTROLLER);
+//    printf("1");
+    res = SDL_InitSubSystem(SDL_INIT_VIDEO);
+//    printf("2");
+
+
+    //Screen dimensions
+    SDL_Rect gScreenRect = { 0, 0, 320, 240 };
+
+    //Get device display mode
+    SDL_DisplayMode displayMode;
+    if( SDL_GetCurrentDisplayMode( 0, &displayMode ) == 0 )
+    {
+        gScreenRect.w = displayMode.w;
+        gScreenRect.h = displayMode.h;
+    }
 
     window = SDL_CreateWindow("Angle Test",
-                                          SDL_WINDOWPOS_UNDEFINED,
-                                          SDL_WINDOWPOS_UNDEFINED,
-                                          1024, 768, SDL_WINDOW_SHOWN
-                                                     | SDL_WINDOW_RESIZABLE);
+                              SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                              gScreenRect.w, gScreenRect.h,
+                              SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+
 //    window = glfwCreateWindow(1024, 768, "helloworld", nullptr, nullptr);
     if (!window)
         return;
@@ -62,6 +78,10 @@ SDLVideo::SDLVideo() {
 	init.platformData.nwh = (void*)(uintptr_t)glfwGetX11Window(window);
 #elif BX_PLATFORM_OSX
     init.platformData.nwh = wmi.info.cocoa.window;
+#elif BX_PLATFORM_IOS
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+    init.platformData.nwh = SDL_RenderGetMetalLayer(renderer);
+    //    init.platformData.nwh = wmi.info.uikit.window;
 #elif BX_PLATFORM_WINDOWS
     init.platformData.nwh = glfwGetWin32Window(window);
 #endif
@@ -76,6 +96,8 @@ SDLVideo::SDLVideo() {
     // Set view 0 to the same dimensions as the window and to clear the color buffer.
     bgfx::setViewClear(kClearView, BGFX_CLEAR_COLOR);
     bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
+    
+    isInitialized = true;
 
     bool closeRequired = false;
     while (!closeRequired) {
@@ -96,23 +118,38 @@ SDLVideo::SDLVideo() {
             }
         }
 
+
+//        SDL_SetRenderDrawColor( render, 0x00, 0xFF, 0xFF, 0xFF );
+//        SDL_RenderClear( render );
+//
+//        SDL_RenderPresent( render );
+
         // Handle window resize.
         draw();
     }
     bgfx::shutdown();
+    if (renderer) SDL_DestroyRenderer(renderer);
+    if (window) SDL_DestroyWindow(window);
     SDL_Quit();
 }
 
 void SDLVideo::draw() {
+    if (!isInitialized) return;
+
     int oldWidth = width, oldHeight = height;
-    SDL_GetWindowSize(window, &width, &height);
-//    glfwGetWindowSize(window, &width, &height);
+    SDL_Metal_GetDrawableSize(window, &width, &height);
+
+    int dw, dh;
+    SDL_GetWindowSize(window, &dw, &dh);
+
     if (width != oldWidth || height != oldHeight) {
         bgfx::reset((uint32_t)width, (uint32_t)height, flags);
         bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
     }
     // This dummy draw call is here to make sure that view 0 is cleared if no other draw calls are submitted to view 0.
     bgfx::touch(kClearView);
+
+//    bgfx::tex
     // Use debug font to print information about this example.
     bgfx::dbgTextClear();
     bgfx::dbgTextImage(bx::max<uint16_t>(uint16_t(width / 2 / 8), 20) - 20, bx::max<uint16_t>(uint16_t(height / 2 / 16), 6) - 6, 40, 12, s_logo, 160);

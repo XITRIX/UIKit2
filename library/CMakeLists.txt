@@ -5,6 +5,7 @@ set(UIKIT_SRC src/Video.cpp)
 set(UIKIT_SOURCE)
 set(UIKIT_INCLUDE)
 set(UIKIT_PLATFORM_LIBS)
+set(UIKIT_PLATFORM_OPTION)
 
 # Add BGFX
 add_subdirectory(${EXTERN_PATH}/bgfx.cmake EXCLUDE_FROM_ALL)
@@ -13,8 +14,6 @@ list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/bgfx.cmake/bx/include)
 # Add SDL
 set(SDL_SHARED OFF)
 set(SDL_STATIC ON)
-add_subdirectory(${EXTERN_PATH}/SDL EXCLUDE_FROM_ALL)
-find_package(SDL2 REQUIRED SDL2-static SDL2main)
 
 # Add GLFW
 #add_subdirectory(${EXTERN_PATH}/glfw EXCLUDE_FROM_ALL)
@@ -41,14 +40,31 @@ endforeach (lib)
 add_library(UIKit STATIC ${UIKIT_SRC})
 set_property(TARGET UIKit PROPERTY CXX_STANDARD 17)
 
+if (PLATFORM_DESKTOP)
+    add_subdirectory(${EXTERN_PATH}/SDL EXCLUDE_FROM_ALL)
+    find_library(SDL2 NAMES SDL2 SDL2-static SDL2main)
+elseif (PLATFORM_IOS)
+    add_subdirectory(${EXTERN_PATH}/SDL EXCLUDE_FROM_ALL)
+    find_library(SDL2 NAMES SDL2 SDL2-static SDL2main)
+elseif (PLATFORM_SWITCH)
+    list(APPEND UIKIT_PLATFORM_OPTION $<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile> -D__SWITCH__ -D__NX__ -DSTBI_NO_THREAD_LOCALS)
+    list(APPEND UIKIT_SRC ${BOREALIS_PATH}/lib/platforms/sdl/sdl_video.cpp)
+    list(APPEND UIKIT_PLATFORM_LIBS SDL2 EGL glapi drm_nouveau nx m)
+    find_package(PkgConfig REQUIRED)
+endif ()
+
+list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/include)
 target_include_directories(UIKit PUBLIC
-        ${SDL2_INCLUDE_DIRS}
+        ${EXTERN_PATH}/SDL/include
+        ${EXTERN_PATH}/SDL/include/SDL2
         ${UIKIT_INCLUDE}
         )
 
 target_link_libraries(UIKit
         bgfx
-        SDL2::SDL2-static
-        SDL2::SDL2main
-#        glfw
+#        SDL2-static
+        SDL2main
         ${UIKIT_PLATFORM_LIBS})
+
+target_compile_options(UIKit PUBLIC
+        ${UIKIT_PLATFORM_OPTION})

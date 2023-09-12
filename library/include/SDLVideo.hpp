@@ -9,9 +9,11 @@ public:
 
 private:
     SDL_Window *window = nullptr;
+    SDL_Renderer *renderer = nullptr;
     const bgfx::ViewId kClearView = 0;
     int width = 0, height = 0;
     bool s_showStats = false;
+    bool isInitialized = false;
 
     static SDLVideo* shared;
     static int resizingEventWatcher(void* data, SDL_Event* event);
