@@ -4,6 +4,7 @@
 
 #include <SDLVideo.hpp>
 
+#include <stdio.h>
 #include <bx/bx.h>
 #include <bgfx/platform.h>
 #include <SDL2/SDL_syswm.h>
@@ -30,12 +31,8 @@ SDLVideo::SDLVideo() {
 // Create a GLFW window without an OpenGL context.
     shared = this;
 //    glfwSetErrorCallback(glfw_errorCallback);
-    int res;
-    res = SDL_Init(SDL_INIT_GAMECONTROLLER);
-//    printf("1");
-    res = SDL_InitSubSystem(SDL_INIT_VIDEO);
-//    printf("2");
-
+    SDL_Init(SDL_INIT_EVERYTHING);
+//    SDL_InitSubSystem(SDL_INIT_VIDEO);
 
     //Screen dimensions
     SDL_Rect gScreenRect = { 0, 0, 320, 240 };
@@ -48,10 +45,25 @@ SDLVideo::SDLVideo() {
         gScreenRect.h = displayMode.h;
     }
 
+    Uint32 windowFlags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN;// | SDL_WINDOW_ALLOW_HIGHDPI;
+
+#if BX_PLATFORM_SWITCH
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
+    SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    windowFlags |= SDL_WINDOW_OPENGL;
+#endif
+
+    printf("Init size %d | %d\n ", gScreenRect.w, gScreenRect.h);
     window = SDL_CreateWindow("Angle Test",
                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                               gScreenRect.w, gScreenRect.h,
-                              SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+                              windowFlags);
 
 //    window = glfwCreateWindow(1024, 768, "helloworld", nullptr, nullptr);
     if (!window)
@@ -59,13 +71,17 @@ SDLVideo::SDLVideo() {
 
     SDL_RegisterEvents(7);
     SDL_AddEventWatch(resizingEventWatcher, window);
+    printf("Window is presented - %d\n", window);
 
-//    glfwSetKeyCallback(window, glfw_keyCallback);
-//SDL_SetSize
-//    glfwSetFramebufferSizeCallback(window, &GLFWVideo::framebuffer_size_callback);
-    // Call bgfx::renderFrame before bgfx::init to signal to bgfx not to create a render thread.
+#if BX_PLATFORM_SWITCH
+    // Configure window
+    SDL_GLContext context = SDL_GL_CreateContext(window);
+    SDL_GL_MakeCurrent(window, context);
+#endif
+
     // Most graphics APIs must be used on the same thread that created the window.
     bgfx::renderFrame();
+
     // Initialize bgfx using the native window handle and window resolution.
     bgfx::Init init;
 
@@ -84,6 +100,8 @@ SDLVideo::SDLVideo() {
     //    init.platformData.nwh = wmi.info.uikit.window;
 #elif BX_PLATFORM_WINDOWS
     init.platformData.nwh = glfwGetWin32Window(window);
+#elif BX_PLATFORM_SWITCH
+    init.platformData.context = context;
 #endif
     SDL_GetWindowSize(window, &width, &height);
 //    glfwGetWindowSize(window, &width, &height);
@@ -91,20 +109,28 @@ SDLVideo::SDLVideo() {
     init.resolution.width = (uint32_t)width;
     init.resolution.height = (uint32_t)height;
     init.resolution.reset = flags;
-    if (!bgfx::init(init))
+
+    if (!bgfx::init(init)) {
         return;
+    }
+
     // Set view 0 to the same dimensions as the window and to clear the color buffer.
     bgfx::setViewClear(kClearView, BGFX_CLEAR_COLOR);
     bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
     
     isInitialized = true;
 
+    auto controller = SDL_GameControllerOpen(0);
+
     bool closeRequired = false;
     while (!closeRequired) {
         bgfx::renderFrame();
 
         SDL_Event event;
+        SDL_PumpEvents();
+//        printf("Frame\n");
         while (SDL_PollEvent(&event)) {
+            printf("Event\n");
             switch (event.type) {
                 case SDL_QUIT:
                     // handling of close button
@@ -113,6 +139,16 @@ SDLVideo::SDLVideo() {
                 case SDL_KEYUP:
                     if (event.key.keysym.sym == SDLK_F1) {
                         s_showStats = !s_showStats;
+                    }
+                    break;
+                case SDL_CONTROLLERBUTTONDOWN:
+                    switch (event.cbutton.button) {
+                        case SDL_CONTROLLER_BUTTON_START:
+                            closeRequired = true;
+                            break;
+                        case SDL_CONTROLLER_BUTTON_A:
+                            s_showStats = !s_showStats;
+                            break;
                     }
                     break;
             }
@@ -128,6 +164,7 @@ SDLVideo::SDLVideo() {
         draw();
     }
     bgfx::shutdown();
+    SDL_GameControllerClose(controller);
     if (renderer) SDL_DestroyRenderer(renderer);
     if (window) SDL_DestroyWindow(window);
     SDL_Quit();
@@ -136,16 +173,24 @@ SDLVideo::SDLVideo() {
 void SDLVideo::draw() {
     if (!isInitialized) return;
 
-    int oldWidth = width, oldHeight = height;
-    SDL_Metal_GetDrawableSize(window, &width, &height);
-
     int dw, dh;
     SDL_GetWindowSize(window, &dw, &dh);
 
-    if (width != oldWidth || height != oldHeight) {
+    int oldWidth = width, oldHeight = height;
+#if BX_PLATFORM_OSX || BX_PLATFORM_IOS
+    SDL_Metal_GetDrawableSize(window, &width, &height);
+#elif BX_PLATFORM_SWITCH
+    SDL_GL_GetDrawableSize(window, &width, &height);
+#else
+    width = dw;
+    height = dh;
+#endif
+
+//    if (width != oldWidth || height != oldHeight) {
         bgfx::reset((uint32_t)width, (uint32_t)height, flags);
         bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
-    }
+//    }
+
     // This dummy draw call is here to make sure that view 0 is cleared if no other draw calls are submitted to view 0.
     bgfx::touch(kClearView);
 
@@ -163,4 +208,8 @@ void SDLVideo::draw() {
     bgfx::setDebug(s_showStats ? BGFX_DEBUG_STATS : BGFX_DEBUG_TEXT);
     // Advance to next frame. Process submitted rendering primitives.
     bgfx::frame();
+
+#if BX_PLATFORM_SWITCH
+    SDL_GL_SwapWindow(window);
+#endif
 }

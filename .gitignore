@@ -1,2 +1,5 @@
 cmake-build-debug
 .DS_Store
+build-ios
+build-switch
+cmake-build-switch

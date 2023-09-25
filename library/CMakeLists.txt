@@ -37,21 +37,23 @@ foreach (lib ${UIKIT_SOURCE})
 endforeach (lib)
 
 # Setup UIKit
-add_library(UIKit STATIC ${UIKIT_SRC})
-set_property(TARGET UIKit PROPERTY CXX_STANDARD 17)
 
 if (PLATFORM_DESKTOP)
     add_subdirectory(${EXTERN_PATH}/SDL EXCLUDE_FROM_ALL)
     find_library(SDL2 NAMES SDL2 SDL2-static SDL2main)
+    list(APPEND UIKIT_PLATFORM_LIBS SDL2-static SDL2main bgfx)
 elseif (PLATFORM_IOS)
     add_subdirectory(${EXTERN_PATH}/SDL EXCLUDE_FROM_ALL)
-    find_library(SDL2 NAMES SDL2 SDL2-static SDL2main)
+    find_library(SDL2 NAMES SDL2-static SDL2main)
+    list(APPEND UIKIT_PLATFORM_LIBS SDL2-static SDL2main bgfx)
 elseif (PLATFORM_SWITCH)
-    list(APPEND UIKIT_PLATFORM_OPTION $<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile> -D__SWITCH__ -D__NX__ -DSTBI_NO_THREAD_LOCALS)
-    list(APPEND UIKIT_SRC ${BOREALIS_PATH}/lib/platforms/sdl/sdl_video.cpp)
-    list(APPEND UIKIT_PLATFORM_LIBS SDL2 EGL glapi drm_nouveau nx m)
+    list(APPEND UIKIT_SRC ${UIKIT_PATH}/src/platform/switch/switch_wrapper.c)
+    list(APPEND UIKIT_PLATFORM_LIBS SDL2 bgfx pthread GLESv2 EGL glapi drm_nouveau c nx m)
     find_package(PkgConfig REQUIRED)
 endif ()
+
+add_library(UIKit STATIC ${UIKIT_SRC})
+set_property(TARGET UIKit PROPERTY CXX_STANDARD 17)
 
 list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/include)
 target_include_directories(UIKit PUBLIC
@@ -61,10 +63,9 @@ target_include_directories(UIKit PUBLIC
         )
 
 target_link_libraries(UIKit
-        bgfx
-#        SDL2-static
-        SDL2main
-        ${UIKIT_PLATFORM_LIBS})
+        ${UIKIT_PLATFORM_LIBS}
+
+        )
 
 target_compile_options(UIKit PUBLIC
         ${UIKIT_PLATFORM_OPTION})

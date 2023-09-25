@@ -8,4 +8,5 @@
 
 int Application::run() {
     new SDLVideo();
+    return 0;
 }
