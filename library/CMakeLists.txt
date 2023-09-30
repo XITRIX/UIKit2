@@ -9,7 +9,7 @@ set(UIKIT_PLATFORM_OPTION)
 add_definitions(-DSTB_TRUETYPE_IMPLEMENTATION)
 
 # Add libromfs
-add_subdirectory(${EXTERN_PATH}/libromfs)
+add_subdirectory(${EXTERN_PATH}/libromfs EXCLUDE_FROM_ALL)
 
 # Add BGFX
 add_subdirectory(${EXTERN_PATH}/bgfx.cmake EXCLUDE_FROM_ALL)

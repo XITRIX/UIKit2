@@ -19,7 +19,7 @@ set -e
 echo "Build libromfs-generator"
 
 PROJECT_PATH=$(dirname "$0")
-LIBROMFS_PATH="${PROJECT_PATH}/library/extern/libromfs/generator"
+LIBROMFS_PATH="${PROJECT_PATH}"
 BUILD_DIR="build_libromfs_generator"
 
 cd "${PROJECT_PATH}"

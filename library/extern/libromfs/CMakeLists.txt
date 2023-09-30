@@ -2,7 +2,15 @@ cmake_minimum_required(VERSION 3.16)
 
 option(LIBROMFS_PROJECT_NAME "Project name" "")
 option(LIBROMFS_RESOURCE_LOCATION "Resource location" "")
-option(LIBROMFS_PREBUILT_GENERATOR "Using prebuilt resources generator" "")
+#option(LIBROMFS_PREBUILT_GENERATOR "Using prebuilt resources generator" "")
+
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/generator/libromfs-generator")
+    execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/generator/build_libromfs_generator.sh)
+endif ()
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/generator/libromfs-generator")
+    set(LIBROMFS_PREBUILT_GENERATOR "${CMAKE_CURRENT_SOURCE_DIR}/generator/libromfs-generator")
+endif ()
 
 if (NOT LIBROMFS_PROJECT_NAME)
     message(FATAL_ERROR "LIBROMFS_PROJECT_NAME is not set")
@@ -25,8 +33,8 @@ endif ()
 set(LIBROMFS_LIBRARY libromfs-${LIBROMFS_PROJECT_NAME} PARENT_SCOPE)
 
 # Add libromfs components
-if(NOT LIBROMFS_PREBUILT_GENERATOR)
-    add_subdirectory(generator)
-endif ()
+#if(NOT LIBROMFS_PREBUILT_GENERATOR)
+#    add_subdirectory(generator)
+#endif ()
 add_subdirectory(lib)
 

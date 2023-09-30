@@ -3,3 +3,5 @@ cmake-build-debug
 build-ios
 build-switch
 cmake-build-switch
+library/extern/libromfs/generator/build_libromfs_generator
+library/extern/libromfs/generator/libromfs-generator
