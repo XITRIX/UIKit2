@@ -130,6 +130,10 @@ SDLVideo::SDLVideo() {
 
     nvgContext = nvgCreate(1, 0);
     bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
+
+    auto context = new CGContext();
+    context->nvgContext = nvgContext;
+    CGContext::current = context;
 }
 
 void SDLVideo::runMainLoop() {
@@ -143,7 +147,6 @@ void SDLVideo::runMainLoop() {
         SDL_PumpEvents();
 //        printf("Frame\n");
         while (SDL_PollEvent(&event)) {
-            printf("Event\n");
             switch (event.type) {
                 case SDL_QUIT:
                     // handling of close button
@@ -222,17 +225,8 @@ void SDLVideo::draw(int width, int height, float scale) {
     nvgBeginFrame(nvgContext, (float) width, (float) height, 1);
     nvgScale(nvgContext, scale, scale);
 
-    auto context = new CGContext();
-    context->nvgContext = nvgContext;
-    CGContext::current = context;
-
-    rootLayer->position = CGPoint::zero;
-    rootLayer->bounds.size.width = width;
-    rootLayer->bounds.size.height = height;
+    rootLayer->setFrame({ 0, 0, (CGFloat) width, (CGFloat) height });
     rootLayer->draw();
-
-    CGContext::current = nullptr;
-    delete context;
 
     nvgEndFrame(nvgContext);
 

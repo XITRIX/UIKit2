@@ -1,5 +1,5 @@
 #include <nanovg.h>
-#include <CoreGraphics/CGLayer.hpp>
+#include <CoreAnimation/CALayer.hpp>
 
 class Video {
 public:
@@ -9,5 +9,5 @@ public:
     virtual void draw(int width, int height, float scale) = 0;
 
     NVGcontext* nvgContext = nullptr;
-    CGLayer* rootLayer = nullptr;
+    CALayer* rootLayer = nullptr;
 };

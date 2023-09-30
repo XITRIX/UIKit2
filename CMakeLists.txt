@@ -16,7 +16,9 @@ set(PROJECT_AUTHOR "XITRIX")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/img/demo_icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 
-set(CMAKE_CXX_STANDARD 17)
+add_libromfs(${PROJECT_NAME} ${PROJECT_RESOURCES})
+
+set(CMAKE_CXX_STANDARD 20)
 set(BX_CONFIG_DEBUG ON)
 
 add_executable(BgfxTest demo/main.cpp)

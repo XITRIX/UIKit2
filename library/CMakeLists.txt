@@ -8,9 +8,13 @@ set(UIKIT_PLATFORM_OPTION)
 
 add_definitions(-DSTB_TRUETYPE_IMPLEMENTATION)
 
+# Add libromfs
+add_subdirectory(${EXTERN_PATH}/libromfs)
+
 # Add BGFX
 add_subdirectory(${EXTERN_PATH}/bgfx.cmake EXCLUDE_FROM_ALL)
 list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/bgfx.cmake/bx/include)
+#list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/bgfx.cmake/bimg/include)
 
 # Add STB
 list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/bgfx.cmake/bgfx/3rdparty)
@@ -49,22 +53,22 @@ endforeach (lib)
 if (PLATFORM_DESKTOP)
     add_subdirectory(${EXTERN_PATH}/SDL EXCLUDE_FROM_ALL)
     find_library(SDL2 NAMES SDL2 SDL2-static SDL2main)
-    list(APPEND UIKIT_PLATFORM_LIBS SDL2-static SDL2main bgfx)
+    list(APPEND UIKIT_PLATFORM_LIBS SDL2-static)
 elseif (PLATFORM_IOS)
     add_subdirectory(${EXTERN_PATH}/SDL EXCLUDE_FROM_ALL)
     find_library(SDL2 NAMES SDL2-static SDL2main)
-    list(APPEND UIKIT_PLATFORM_LIBS SDL2-static SDL2main bgfx)
+    list(APPEND UIKIT_PLATFORM_LIBS SDL2-static)
 elseif (PLATFORM_ANDROID)
     add_definitions(-D__ANDROID__)
-    list(APPEND UIKIT_PLATFORM_LIBS SDL2-static SDL2main bgfx EGL)
+    list(APPEND UIKIT_PLATFORM_LIBS SDL2-static EGL)
 elseif (PLATFORM_SWITCH)
     list(APPEND UIKIT_SRC ${UIKIT_PATH}/src/platform/switch/switch_wrapper.c)
-    list(APPEND UIKIT_PLATFORM_LIBS SDL2 bgfx pthread GLESv2 EGL glapi drm_nouveau c nx m)
+    list(APPEND UIKIT_PLATFORM_LIBS SDL2 pthread GLESv2 EGL glapi drm_nouveau c nx m)
     find_package(PkgConfig REQUIRED)
 endif ()
 
 add_library(UIKit STATIC ${UIKIT_SRC})
-set_property(TARGET UIKit PROPERTY CXX_STANDARD 17)
+set_property(TARGET UIKit PROPERTY CXX_STANDARD 20)
 
 list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/include)
 target_include_directories(UIKit PUBLIC
@@ -74,8 +78,11 @@ target_include_directories(UIKit PUBLIC
         )
 
 target_link_libraries(UIKit
+        ${LIBROMFS_LIBRARY}
+        SDL2main
+        bgfx
+        bimg_decode
         ${UIKIT_PLATFORM_LIBS}
-
         )
 
 target_compile_options(UIKit PUBLIC
