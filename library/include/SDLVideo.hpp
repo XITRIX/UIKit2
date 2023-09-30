@@ -5,7 +5,10 @@
 class SDLVideo: public Video {
 public:
     SDLVideo();
-    void draw() override;
+
+    void runMainLoop() override;
+    void update() override;
+    void draw(int width, int height, float scale) override;
 
 private:
     SDL_Window *window = nullptr;

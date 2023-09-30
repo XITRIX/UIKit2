@@ -1,19 +1,27 @@
 set(UIKIT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 set(EXTERN_PATH ${UIKIT_PATH}/extern)
 
-set(UIKIT_SRC src/Video.cpp)
 set(UIKIT_SOURCE)
 set(UIKIT_INCLUDE)
 set(UIKIT_PLATFORM_LIBS)
 set(UIKIT_PLATFORM_OPTION)
 
+add_definitions(-DSTB_TRUETYPE_IMPLEMENTATION)
+
 # Add BGFX
 add_subdirectory(${EXTERN_PATH}/bgfx.cmake EXCLUDE_FROM_ALL)
 list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/bgfx.cmake/bx/include)
 
+# Add STB
+list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/bgfx.cmake/bgfx/3rdparty)
+
 # Add SDL
 set(SDL_SHARED OFF)
 set(SDL_STATIC ON)
+
+# Add NanoVG
+list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/nanovg)
+list(APPEND UIKIT_SRC "${EXTERN_PATH}/nanovg/nanovg.cpp" "${EXTERN_PATH}/nanovg/nanovg_bgfx.cpp")
 
 # Add GLFW
 #add_subdirectory(${EXTERN_PATH}/glfw EXCLUDE_FROM_ALL)
@@ -46,6 +54,9 @@ elseif (PLATFORM_IOS)
     add_subdirectory(${EXTERN_PATH}/SDL EXCLUDE_FROM_ALL)
     find_library(SDL2 NAMES SDL2-static SDL2main)
     list(APPEND UIKIT_PLATFORM_LIBS SDL2-static SDL2main bgfx)
+elseif (PLATFORM_ANDROID)
+    add_definitions(-D__ANDROID__)
+    list(APPEND UIKIT_PLATFORM_LIBS SDL2-static SDL2main bgfx EGL)
 elseif (PLATFORM_SWITCH)
     list(APPEND UIKIT_SRC ${UIKIT_PATH}/src/platform/switch/switch_wrapper.c)
     list(APPEND UIKIT_PLATFORM_LIBS SDL2 bgfx pthread GLESv2 EGL glapi drm_nouveau c nx m)
