@@ -131,9 +131,9 @@ SDLVideo::SDLVideo() {
     nvgContext = nvgCreate(1, 0);
     bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
 
-    auto context = new CGContext();
-    context->nvgContext = nvgContext;
-    CGContext::current = context;
+    auto _context = new CGContext();
+    _context->nvgContext = nvgContext;
+    CGContext::current = _context;
 }
 
 void SDLVideo::runMainLoop() {

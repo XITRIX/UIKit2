@@ -3,6 +3,7 @@
 //
 
 #include <CoreGraphics/Geometry.hpp>
+#include <cmath>
 
 CGPoint CGPoint::zero = { 0, 0 };
 CGSize CGSize::zero = { 0, 0 };
@@ -25,7 +26,7 @@ float max(float a, float b, float c, float d) {
 }
 
 float isEqual(float val1, float val2) {
-    if (isnan(val1) && isnan(val2))
+    if (std::isnan(val1) && std::isnan(val2))
         return true;
     return val1 == val2;
 }

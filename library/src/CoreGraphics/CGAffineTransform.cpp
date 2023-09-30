@@ -4,6 +4,7 @@
 
 #include <CoreGraphics/CGAffineTransform.hpp>
 #include <CATransform3D.hpp>
+#include <cmath>
 
 #define RAD_PER_DEG 0.017453293f
 

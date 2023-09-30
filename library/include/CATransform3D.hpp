@@ -5,6 +5,7 @@
 #pragma once
 
 #include <CoreGraphics/CGAffineTransform.hpp>
+#include <libretro-common/retro_math.h>
 
 struct Vector3 {
     float x, y, z;
@@ -22,26 +23,24 @@ public:
                   float m31, float m32, float m33, float m34,
                   float m41, float m42, float m43, float m44);
     CATransform3D();
-    CATransform3D(float* unsafePointer);
+    explicit CATransform3D(float* unsafePointer);
 
     static CATransform3D translationBy(float x, float y, float z);
     static CATransform3D scaleBy(float x, float y, float z);
     static CATransform3D scale(float factor);
     static CATransform3D rotationBy(float angle, float x, float y, float z);
 
-    CATransform3D concat(const CATransform3D& other) const;
+    [[nodiscard]] CATransform3D concat(const CATransform3D& other) const;
     bool operator==(const CATransform3D& rhs) const;
     CATransform3D operator+(const CATransform3D& rhs) const;
     CATransform3D operator-(const CATransform3D& rhs) const;
     CATransform3D operator*(const CATransform3D& first) const;
     CATransform3D operator*(const float& first) const;
-    CATransform3D interpolateTo(const CATransform3D& matrix, const float& progress) const;
+    [[nodiscard]] CATransform3D interpolateTo(const CATransform3D& matrix, const float& progress) const;
 
-    Vector3 transformingVector(float x, float y, float z) const;
+    [[nodiscard]] Vector3 transformingVector(float x, float y, float z) const;
 
     static const CATransform3D identity;
-
-//    void setAsSDLgpuMatrix() const;
 
 };
 

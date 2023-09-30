@@ -11,6 +11,13 @@ add_definitions(-DSTB_TRUETYPE_IMPLEMENTATION)
 # Add libromfs
 add_subdirectory(${EXTERN_PATH}/libromfs EXCLUDE_FROM_ALL)
 
+# Add libretro
+list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/libretro/include)
+list(APPEND UIKIT_SRC
+        "${EXTERN_PATH}/libretro/src/compat/compat_strl.c"
+        "${EXTERN_PATH}/libretro/src/encodings/encoding_utf.c"
+        "${EXTERN_PATH}/libretro/src/features/features_cpu.c")
+
 # Add BGFX
 add_subdirectory(${EXTERN_PATH}/bgfx.cmake EXCLUDE_FROM_ALL)
 list(APPEND UIKIT_INCLUDE ${EXTERN_PATH}/bgfx.cmake/bx/include)

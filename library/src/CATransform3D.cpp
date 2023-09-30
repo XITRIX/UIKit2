@@ -4,6 +4,8 @@
 
 #include <CATransform3D.hpp>
 #include <CoreGraphics/Geometry.hpp>
+#include <cmath>
+
 #define RAD_PER_DEG 0.017453293f
 
 const CATransform3D CATransform3D::identity = CATransform3DIdentity;

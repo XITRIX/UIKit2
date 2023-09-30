@@ -4,13 +4,14 @@
 
 #pragma once
 
+#include <string>
 #include <optional>
 #include <vector>
 
 class Data {
 public:
-    int count() const;
-    std::byte* data() const;
+    [[nodiscard]] int count() const;
+    [[nodiscard]] std::byte* data() const;
 
     Data(const std::byte* bytes, std::size_t count, bool freeSource = false);
     ~Data();
