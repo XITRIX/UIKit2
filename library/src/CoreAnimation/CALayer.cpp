@@ -53,46 +53,71 @@ void CALayer::draw() {
     auto context = CGContext::current;
     context->save();
 
-    auto currentFrame = frame();
+    // The basis for all our transformations is `position` (in parent coordinates), which in this layer's
+    // coordinates is `anchorPoint`. To make this happen, we translate (in our parent's coordinate system
+    // – which may in turn be affected by its parents, and so on) to `position`, and then render rectangles
+    // which may (and often do) start at a negative `origin` based on our (bounds) `size` and `anchorPoint`:
+    auto parentOriginTransform = CATransform3DMakeAffineTransform(context->ctm());
+    auto translationToPosition = CATransform3DMakeTranslation(m_position.x, m_position.y, m_zPosition);
+    auto transformAtPositionInParentCoordinates = parentOriginTransform * translationToPosition;
+
+    auto modelViewTransform = transformAtPositionInParentCoordinates * m_transform;
+
+    // Now that we're in our own coordinate system based around `anchorPoint` (which is generally the middle of
+    // bounds.size), we need to find the top left of the rectangle in order to be able to render rectangles.
+    // Since we have already applied our own `transform`, we can work in our own (`bounds.size`) units.
+    auto deltaFromAnchorPointToOrigin = CGPoint(-(m_bounds.width() * m_anchorPoint.x),
+                                              -(m_bounds.height() * m_anchorPoint.y));
+    auto renderedBoundsRelativeToAnchorPoint = CGRect(deltaFromAnchorPointToOrigin, m_bounds.size);
+
+    // Big performance optimization. Don't render anything that's entirely offscreen:
+    auto rendererBounds = CGRect(0, 0, (CGFloat) context->width(), (CGFloat) context->height());
+    auto absoluteFrame = renderedBoundsRelativeToAnchorPoint.applying(modelViewTransform);
+    if (!absoluteFrame.intersects(rendererBounds)) { return; }
+
+    context->setCtm(CATransform3DGetAffineTransform(modelViewTransform));
+
+    // `position` is always relative from the parent's origin, but the global GPU matrix is currently
+    // focused on `self.position` rather than the `origin` we calculated to render rectangles.
+    // We need to be at `origin` here though so we can translate to the next `position` in each sublayer.
+    //
+    // We also subtract `bounds` to get the strange but useful scrolling effect as on iOS.
+    auto translationFromAnchorPointToOrigin = CATransform3DMakeTranslation(
+            deltaFromAnchorPointToOrigin.x - m_bounds.origin.x,
+            deltaFromAnchorPointToOrigin.y - m_bounds.origin.y,
+            0 // If we moved (e.g.) forward to render `self`, all sublayers should start at that same zIndex
+    );
+
+    // This transform is referred to as the `parentOriginTransform` in our sublayers (see above):
+    auto transformAtSelfOrigin = modelViewTransform * translationFromAnchorPointToOrigin;
 
     // Background color
     context->beginPath();
     context->setFillColor(backgroundColor);
-    context->fill(currentFrame, cornerRadius(), true);
+    context->fill(renderedBoundsRelativeToAnchorPoint, cornerRadius(), true);
 
     // Contents
     if (m_contents) {
-        auto contentsGravity = ContentsGravityTransformation(this);
-//        GPU_SetAnchor(m_contents->pointee, _anchorPoint.x, _anchorPoint.y);
-//        GPU_SetRGBA(m_contents->pointee, 255, 255, 255, _opacity * 255);
-//
-//        GPU_BlitTransform(
-//                m_contents->pointee,
-//                NULL,
-//                renderer,
-//                contentsGravity.offset.x,
-//                contentsGravity.offset.y,
-//                0, // rotation in degrees
-//                contentsGravity.scale.width / contentsScale,
-//                contentsGravity.scale.height / contentsScale
-//        );
-//
-//        // False attempt
-//        context->drawImage(m_contents->textureID(), {
-//                contentsGravity.offset.x,
-//                contentsGravity.offset.y,
-//                contentsGravity.scale.width / contentsScale,
-//                contentsGravity.scale.height / contentsScale
-//        });
-//
-        context->drawImage(m_contents->textureID(), {currentFrame});
+        auto contentsGravityValues = ContentsGravityTransformation(this);
+
+        auto size = contentsGravityValues.size / contentsScale;
+        auto position = CGPoint(contentsGravityValues.offset.x - size.width / 2,
+                                contentsGravityValues.offset.y - size.height / 2);
+
+        context->drawImage(m_contents->textureID(), {
+                position.x,
+                position.y,
+                size.width,
+                size.height
+        });
     }
 
-    context->translateBy(currentFrame.minX(), currentFrame.minY());
-
+    context->save();
+    context->setCtm(CATransform3DGetAffineTransform(transformAtSelfOrigin));
     for (auto layer: sublayers()) {
         layer->draw();
     }
+    context->restore();
 
     context->restore();
 }

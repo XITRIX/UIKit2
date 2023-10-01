@@ -8,7 +8,7 @@
 
 struct CGAffineTransform {
 public:
-    float m11, m12, m21, m22, tX, tY;
+    float m11{}, m12{}, m21{}, m22{}, tX{}, tY{};
 
     CGAffineTransform();
     CGAffineTransform(float m11, float m12, float m21, float m22, float tX, float tY);

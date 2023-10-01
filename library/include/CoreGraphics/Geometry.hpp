@@ -24,8 +24,8 @@ struct CGPoint {
     CGPoint operator/(const float& rhs);
     CGPoint operator*(const float& rhs);
 
-    CGPoint applying(CGAffineTransform transform) const;
-    CGFloat magnitude() const;
+    [[nodiscard]] CGPoint applying(CGAffineTransform transform) const;
+    [[nodiscard]] CGFloat magnitude() const;
 
     static CGPoint zero;
 };
@@ -34,8 +34,17 @@ struct CGSize {
     CGFloat width;
     CGFloat height;
 
-    CGSize(CGFloat width, CGFloat height): width(width), height(height) {}
-    CGSize(): CGSize(0, 0) {}
+    CGSize(CGFloat width, CGFloat height);
+    CGSize();
+
+    bool operator==(const CGSize& rhs) const;
+    CGSize operator+(const CGSize& first) const;
+    CGSize operator-(const CGSize& first) const;
+    CGSize& operator+=(const CGSize& rhs);
+    CGSize& operator-=(const CGSize& rhs);
+
+    CGSize operator*(const CGFloat& rhs) const;
+    CGSize operator/(const CGFloat& rhs) const;
 
     static CGSize zero;
 };

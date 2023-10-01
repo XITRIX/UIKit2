@@ -10,28 +10,28 @@
 
 const CGAffineTransform CGAffineTransform::identity = CGAffineTransform(1, 0, 0, 1, 0, 0);
 
-CGAffineTransform::CGAffineTransform() {}
+CGAffineTransform::CGAffineTransform() = default;
 
 CGAffineTransform::CGAffineTransform(float m11, float m12, float m21, float m22, float tX, float tY):
         m11(m11), m12(m12), m21(m21), m22(m22), tX(tX), tY(tY)
 { }
 
 CGAffineTransform CGAffineTransform::translationBy(float x, float y) {
-    return CGAffineTransform(1, 0,
-                             0, 1,
-                             x, y);
+    return {1, 0,
+            0, 1,
+            x, y};
 }
 
 CGAffineTransform CGAffineTransform::scaleBy(float x, float y) {
-    return CGAffineTransform(x, 0,
-                             0, y,
-                             0, 0);
+    return {x, 0,
+            0, y,
+            0, 0};
 }
 
 CGAffineTransform CGAffineTransform::scale(float f) {
-    return CGAffineTransform(f, 0,
-                             0, f,
-                             0, 0);
+    return {f, 0,
+            0, f,
+            0, 0};
 }
 
 CGAffineTransform CGAffineTransform::rotationBy(float angle) {
@@ -39,9 +39,9 @@ CGAffineTransform CGAffineTransform::rotationBy(float angle) {
     float c = cosf(radians);
     float s = sinf(radians);
 
-    return CGAffineTransform(c,  s,
-                             -s, c,
-                             0,  0);
+    return {c,  s,
+            -s, c,
+            0,  0};
 }
 
 std::optional<CGAffineTransform> CGAffineTransform::inverted() const {

@@ -18,6 +18,12 @@ public:
     void save() const;
     void restore() const;
 
+    [[nodiscard]] int width() const { return (int) m_currentFrameSize.width; }
+    [[nodiscard]] int height() const { return (int) m_currentFrameSize.height; }
+
+    void beginFrame(int windowWidth, int windowHeight, CGFloat devicePixelRatio);
+    void endFrame();
+
     // Setting Fill, Stroke, and Shadow Colors
     void beginPath() const;
     void fill(CGRect rect) const;
@@ -38,4 +44,8 @@ public:
     void unloadImage(int imageID) const;
     [[nodiscard]] CGSize imageSize(int imgTextureID) const;
     void drawImage(int imgTextureID, CGRect atRect) const;
+
+private:
+    CGSize m_currentFrameSize;
+    CGFloat m_currentFrameScale = 0;
 };

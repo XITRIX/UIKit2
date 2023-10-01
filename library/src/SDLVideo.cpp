@@ -4,7 +4,7 @@
 
 #include <SDLVideo.hpp>
 
-#include <stdio.h>
+#include <cstdio>
 #include <bx/bx.h>
 #include <bgfx/platform.h>
 #include <SDL_syswm.h>
@@ -42,7 +42,10 @@ SDLVideo::SDLVideo() {
     //Screen dimensions
     SDL_Rect gScreenRect = { 0, 0, 1280, 720 };
 
-#if BX_PLATFORM_OS_CONSOLE
+#if BX_PLATFORM_SWITCH
+    gScreenRect.w = 1280;
+    gScreenRect.h = 720;
+#elif BX_PLATFORM_OS_CONSOLE
     //Get device display mode
     SDL_DisplayMode displayMode;
     if( SDL_GetCurrentDisplayMode( 0, &displayMode ) == 0 )
@@ -222,13 +225,13 @@ void SDLVideo::update() {
 }
 
 void SDLVideo::draw(int width, int height, float scale) {
-    nvgBeginFrame(nvgContext, (float) width, (float) height, 1);
-    nvgScale(nvgContext, scale, scale);
+    auto _context = CGContext::current;
+    _context->beginFrame(width, height, scale);
 
-    rootLayer->setFrame({ 0, 0, (CGFloat) width, (CGFloat) height });
+    rootLayer->setFrame({ 0, 0, (CGFloat) width / scale, (CGFloat) height / scale });
     rootLayer->draw();
 
-    nvgEndFrame(nvgContext);
+    _context->endFrame();
 
     // Use debug font to print information about this example.
 //    bgfx::dbgTextClear();

@@ -25,7 +25,7 @@ float max(float a, float b, float c, float d) {
     return maxValue;
 }
 
-float isEqual(float val1, float val2) {
+bool isEqual(float val1, float val2) {
     if (std::isnan(val1) && std::isnan(val2))
         return true;
     return val1 == val2;
@@ -78,6 +78,42 @@ CGPoint CGPoint::applying(CGAffineTransform t) const {
 
 CGFloat CGPoint::magnitude() const {
     return sqrtf(x * x + y * y);
+}
+
+// MARK: - SIZE -
+CGSize::CGSize(): width(0), height(0) { }
+CGSize::CGSize(float width, float height): width(width), height(height) { }
+
+bool CGSize::operator==(const CGSize& rhs) const {
+    return isEqual(this->width, rhs.width) && isEqual(this->height, rhs.height);
+}
+
+CGSize CGSize::operator+(const CGSize& first) const {
+    return {width + first.width, height + first.height};
+}
+
+CGSize CGSize::operator-(const CGSize& first) const {
+    return {width - first.width, height - first.height};
+}
+
+CGSize& CGSize::operator+=(const CGSize& rhs) {
+    this->width += rhs.width;
+    this->height += rhs.height;
+    return *this;
+}
+
+CGSize& CGSize::operator-=(const CGSize& rhs) {
+    this->width -= rhs.width;
+    this->height -= rhs.height;
+    return *this;
+}
+
+CGSize CGSize::operator*(const float& rhs) const {
+    return {width * rhs, height * rhs};
+}
+
+CGSize CGSize::operator/(const float& rhs) const {
+    return {width / rhs, height / rhs};
 }
 
 // MARK: - CGCGRect -

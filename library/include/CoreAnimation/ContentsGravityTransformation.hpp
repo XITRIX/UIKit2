@@ -17,6 +17,7 @@ class CALayer;
 struct ContentsGravityTransformation {
     CGPoint offset;
     CGSize scale;
+    CGSize size;
 
     explicit ContentsGravityTransformation(CALayer* layer);
 

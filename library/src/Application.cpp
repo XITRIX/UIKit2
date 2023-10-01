@@ -16,12 +16,14 @@ int Application::run() {
     auto layer2 = new CALayer();
     layer2->setFrame({ 120, 120, 280, 44 });
     layer2->backgroundColor = CGColor::black;
-    layer2->setCornerRadius(12);
+    layer2->setCornerRadius(18);
 
     layer->addSublayer(layer2);
 
     auto image = CGImage::FromPath("img/demo_icon.jpg");
     layer2->setContents(image);
+    layer2->setAffineTransform(CGAffineTransform::rotationBy(45));
+    layer2->contentsGravity = CALayerContentsGravity::resizeAspect;
 
     video->rootLayer = layer;
     video->runMainLoop();

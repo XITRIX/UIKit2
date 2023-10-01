@@ -51,6 +51,7 @@ public:
     void addSublayer(CALayer* layer);
 
 private:
+    float m_zPosition = 0;
     CGPoint m_position = CGPoint::zero;
     CGRect m_bounds = CGRect::zero;
     CGPoint m_anchorPoint = { 0.5f, 0.5f };

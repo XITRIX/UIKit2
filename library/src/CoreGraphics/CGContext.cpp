@@ -15,6 +15,20 @@ void CGContext::restore() const {
     nvgRestore(nvgContext);
 }
 
+void CGContext::beginFrame(int windowWidth, int windowHeight, CGFloat devicePixelRatio) {
+    nvgBeginFrame(nvgContext, (float) windowWidth, (float) windowHeight, 1);
+    nvgScale(nvgContext, devicePixelRatio, devicePixelRatio);
+
+    m_currentFrameSize = { (CGFloat) windowWidth, (CGFloat) windowHeight };
+    m_currentFrameScale = devicePixelRatio;
+}
+
+void CGContext::endFrame() {
+    nvgEndFrame(nvgContext);
+    m_currentFrameSize = CGSize::zero;
+    m_currentFrameScale = 0;
+}
+
 void CGContext::beginPath() const {
     nvgBeginPath(nvgContext);
 }
@@ -68,11 +82,12 @@ void CGContext::drawImage(int imgTextureID, CGRect atRect) const {
 CGAffineTransform CGContext::ctm() const {
     float matrix[6];
     nvgCurrentTransform(nvgContext, matrix);
-    return {matrix[0], matrix[3], matrix[1], matrix[4], matrix[2], matrix[5]};
+    return {matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]};
 }
 
 void CGContext::setCtm(CGAffineTransform ctm) const {
-    nvgTransform(nvgContext, ctm.m11, ctm.m21, ctm.tX, ctm.m12, ctm.m22, ctm.tY);
+    nvgResetTransform(nvgContext);
+    nvgTransform(nvgContext, ctm.m11, ctm.m12, ctm.m21, ctm.m22, ctm.tX, ctm.tY);
 }
 
 void CGContext::rotateBy(CGFloat byAngle) const {
