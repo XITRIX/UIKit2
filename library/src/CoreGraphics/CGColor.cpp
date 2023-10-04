@@ -7,7 +7,9 @@
 CGColor CGColor::clear(0, 0, 0, 0);
 CGColor CGColor::white(255, 255, 255);
 CGColor CGColor::black(0, 0, 0);
+CGColor CGColor::red(255, 0, 0);
 CGColor CGColor::yellow(255, 255, 0);
+CGColor CGColor::orange(255, 155, 0);
 
 CGColor::CGColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
     color = ((a << 24) | (b << 16) | (g << 8) | r);
@@ -27,4 +29,8 @@ unsigned char CGColor::b() const {
 
 unsigned char CGColor::a() const {
     return (color >> 24) & 0xff;
+}
+
+bool CGColor::operator==(const CGColor& rhs) const {
+    return this->color == rhs.color;
 }

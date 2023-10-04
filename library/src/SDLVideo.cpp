@@ -131,11 +131,7 @@ SDLVideo::SDLVideo() {
     
     isInitialized = true;
 
-    nvgContext = nvgCreate(1, 0);
-    bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
-
     auto _context = new CGContext();
-    _context->nvgContext = nvgContext;
     CGContext::current = _context;
 }
 
@@ -144,7 +140,12 @@ void SDLVideo::runMainLoop() {
 
     bool closeRequired = false;
     while (!closeRequired) {
-//        bgfx::renderFrame();
+        static unsigned int a, b, delta;
+        a = SDL_GetTicks();
+        delta = a - b;
+
+        if (delta < 1000/fpsCap) continue;
+        b = a;
 
         SDL_Event event;
         SDL_PumpEvents();
@@ -183,7 +184,7 @@ void SDLVideo::runMainLoop() {
         update();
     }
 
-    nvgDelete(nvgContext);
+    delete CGContext::current;
     bgfx::shutdown();
     SDL_GameControllerClose(controller);
     if (renderer) SDL_DestroyRenderer(renderer);

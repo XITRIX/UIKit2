@@ -18,6 +18,9 @@ public:
     static CGColor white;
     static CGColor red;
     static CGColor yellow;
+    static CGColor orange;
+
+    bool operator==(const CGColor& rhs) const;
 private:
     int color = 0;
 };

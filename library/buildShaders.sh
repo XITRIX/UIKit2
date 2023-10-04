@@ -1,0 +1,5 @@
+./shaderc -f include/Foundation/Shaders/vs_common.sc -o include/Foundation/Shaders/parts/vs_common_mtl.bin.h --type vertex --platform osx -p metal -i src --verbose --bin2c -i ./extern/bgfx.cmake/bgfx/src --varyingdef ./include/Foundation/Shaders/varying.def.sc
+./shaderc -f include/Foundation/Shaders/fs_mask.sc -o include/Foundation/Shaders/parts/fs_mask_mtl.bin.h --type fragment --platform osx -p metal -i src --verbose --bin2c -i ./extern/bgfx.cmake/bgfx/src --varyingdef ./include/Foundation/Shaders/varying.def.sc
+
+./shaderc -f include/Foundation/Shaders/vs_common.sc -o include/Foundation/Shaders/parts/vs_common_essl.bin.h --type vertex --platform android -i src --verbose --bin2c -i ./extern/bgfx.cmake/bgfx/src --varyingdef ./include/Foundation/Shaders/varying.def.sc
+./shaderc -f include/Foundation/Shaders/fs_mask.sc -o include/Foundation/Shaders/parts/fs_mask_essl.bin.h --type fragment --platform android -i src --verbose --bin2c -i ./extern/bgfx.cmake/bgfx/src --varyingdef ./include/Foundation/Shaders/varying.def.sc

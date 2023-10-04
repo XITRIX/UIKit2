@@ -8,6 +8,5 @@ public:
     virtual void update() = 0;
     virtual void draw(int width, int height, float scale) = 0;
 
-    NVGcontext* nvgContext = nullptr;
     CALayer* rootLayer = nullptr;
 };

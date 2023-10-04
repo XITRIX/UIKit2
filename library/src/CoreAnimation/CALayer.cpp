@@ -4,6 +4,7 @@
 
 #include <CoreAnimation/CALayer.hpp>
 #include <CoreGraphics/CGContext.hpp>
+#include <Foundation/ShaderProgram.hpp>
 
 CGRect CALayer::frame() {
     // Create a rectangle based on `bounds.size` * `transform` at `position` offset by `anchorPoint`
@@ -53,6 +54,27 @@ void CALayer::draw() {
     auto context = CGContext::current;
     context->save();
 
+
+
+    bool contextPushed = false;
+    if (m_opacity < 1) {
+        contextPushed = true;
+        context->pushContext();
+    }
+
+    if (m_contents) {
+//        auto maskShader = ShaderProgram::mask();
+//        float maskRect[4] {
+//                m_position.x,
+//                m_position.y,
+//                m_bounds.size.width,
+//                m_bounds.size.height
+//        };
+//        bgfx::setUniform(maskShader->maskFrame, maskRect);
+//        bgfx::setTexture(0, maskShader->maskTexture, bgfx::TextureHandle { (uint16_t) m_contents->textureID() });
+//        bgfx::submit(0, maskShader->program);
+    }
+
     // The basis for all our transformations is `position` (in parent coordinates), which in this layer's
     // coordinates is `anchorPoint`. To make this happen, we translate (in our parent's coordinate system
     // – which may in turn be affected by its parents, and so on) to `position`, and then render rectangles
@@ -92,9 +114,11 @@ void CALayer::draw() {
     auto transformAtSelfOrigin = modelViewTransform * translationFromAnchorPointToOrigin;
 
     // Background color
-    context->beginPath();
-    context->setFillColor(backgroundColor);
-    context->fill(renderedBoundsRelativeToAnchorPoint, cornerRadius(), true);
+    if (m_backgroundColor.has_value()) {
+        context->beginPath();
+        context->setFillColor(m_backgroundColor.value());
+        context->fill(renderedBoundsRelativeToAnchorPoint, cornerRadius(), false);
+    }
 
     // Contents
     if (m_contents) {
@@ -119,9 +143,71 @@ void CALayer::draw() {
     }
     context->restore();
 
+    if (contextPushed) {
+        context->popContext(m_opacity);
+    }
+
     context->restore();
 }
 
 void CALayer::addSublayer(CALayer* layer) {
     m_sublayers.push_back(layer);
+}
+
+// MARK: - Animatable
+void CALayer::setAnchorPoint(CGPoint anchorPoint) {
+    if (m_anchorPoint == anchorPoint) return;
+    onWillSet("anchorPoint");
+    m_anchorPoint = anchorPoint;
+}
+
+void CALayer::setPosition(CGPoint position) {
+    if (m_position == position) return;
+    onWillSet("position");
+    m_position = position;
+}
+
+void CALayer::setBounds(CGRect bounds) {
+    if (m_bounds == bounds) return;
+    onWillSet("bounds");
+    m_bounds = bounds;
+}
+
+void CALayer::setOpacity(CGFloat opacity) {
+    if (m_opacity == opacity) return;
+    onWillSet("opacity");
+    m_opacity = opacity;
+}
+
+void CALayer::setTransform(CATransform3D transform) {
+    if (m_transform == transform) return;
+    onWillSet("transform");
+    m_transform = transform;
+}
+
+void CALayer::setCornerRadius(CGFloat cornerRadius) {
+    if (m_cornerRadius == cornerRadius) return;
+    onWillSet("cornerRadius");
+    m_cornerRadius = cornerRadius;
+}
+
+void CALayer::setBackgroundColor(std::optional<CGColor> backgroundColor) {
+    if (m_backgroundColor == backgroundColor) return;
+    onWillSet("backgroundColor");
+    m_backgroundColor = backgroundColor;
+}
+
+void CALayer::onWillSet(std::string keyPath) {
+//    CALayer::layerTreeIsDirty = true;
+    auto animationKey = keyPath;
+
+//    auto animation = std::static_pointer_cast<CABasicAnimation>(actionForKey(animationKey));
+//    if (animation &&
+//        (this->hasBeenRenderedInThisPartOfOverallLayerHierarchy
+//         || animation->wasCreatedInUIAnimateBlock()) &&
+//        !this->isPresentationForAnotherLayer &&
+//        !CATransaction::disableActions())
+//    {
+//        add(animation, animationKey);
+//    }
 }

@@ -6,14 +6,16 @@
 #include <CoreGraphics/Geometry.hpp>
 #include <CoreGraphics/CGColor.hpp>
 #include <CoreGraphics/CGAffineTransform.hpp>
+#include <vector>
 
 #pragma once
 
 class CGContext {
 public:
-    NVGcontext* nvgContext = nullptr;
-
     static CGContext* current;
+
+    CGContext();
+    ~CGContext();
 
     void save() const;
     void restore() const;
@@ -23,6 +25,9 @@ public:
 
     void beginFrame(int windowWidth, int windowHeight, CGFloat devicePixelRatio);
     void endFrame();
+
+    void pushContext();
+    void popContext(CGFloat withAlpha);
 
     // Setting Fill, Stroke, and Shadow Colors
     void beginPath() const;
@@ -46,6 +51,12 @@ public:
     void drawImage(int imgTextureID, CGRect atRect) const;
 
 private:
+    NVGcontext* nvgContext = nullptr;
+
     CGSize m_currentFrameSize;
     CGFloat m_currentFrameScale = 0;
+
+//    std::vector<NVGcontext *> contexts;
+    std::vector<NVGLUframebuffer*> framebuffers;
+    std::vector<NVGLUframebuffer*> framebuffersQueue;
 };

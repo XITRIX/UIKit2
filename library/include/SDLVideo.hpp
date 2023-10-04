@@ -20,5 +20,6 @@ private:
 
     static SDLVideo* shared;
     static int resizingEventWatcher(void* data, SDL_Event* event);
+    const int fpsCap = 120;
 //    static void framebuffer_size_callback(SDLVideo* window, int width, int height);
 };

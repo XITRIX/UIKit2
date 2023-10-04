@@ -3,9 +3,20 @@
 //
 
 #include <CoreGraphics/CGContext.hpp>
+#include <nanovg_bgfx.h>
 #include "CGContext+Continous.hpp"
 
 CGContext* CGContext::current = nullptr;
+
+CGContext::CGContext() {
+    nvgContext = nvgCreate(1, 0);
+    bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
+//    contexts.push_back(nvgContext);
+}
+
+CGContext::~CGContext() {
+    nvgDelete(nvgContext);
+}
 
 void CGContext::save() const {
     nvgSave(nvgContext);
@@ -19,14 +30,74 @@ void CGContext::beginFrame(int windowWidth, int windowHeight, CGFloat devicePixe
     nvgBeginFrame(nvgContext, (float) windowWidth, (float) windowHeight, 1);
     nvgScale(nvgContext, devicePixelRatio, devicePixelRatio);
 
-    m_currentFrameSize = { (CGFloat) windowWidth, (CGFloat) windowHeight };
+    CGSize newFrameSize = { (CGFloat) windowWidth, (CGFloat) windowHeight };
+    if (m_currentFrameSize != newFrameSize) {
+        for (auto fb : framebuffersQueue) {
+            nvgluDeleteFramebuffer(fb);
+        }
+        framebuffersQueue.clear();
+    }
+
+    m_currentFrameSize = newFrameSize;
     m_currentFrameScale = devicePixelRatio;
+
+
 }
 
 void CGContext::endFrame() {
     nvgEndFrame(nvgContext);
-    m_currentFrameSize = CGSize::zero;
-    m_currentFrameScale = 0;
+}
+
+void CGContext::pushContext() {
+    save();
+    auto _ctm = ctm();
+
+    NVGLUframebuffer* fb;
+    if (framebuffersQueue.empty()) {
+        float scale = m_currentFrameScale;
+        fb = nvgluCreateFramebuffer(nvgContext,
+                                    (int) (m_currentFrameSize.width * scale),
+                                    (int) (m_currentFrameSize.height * scale),
+                                    0);
+    } else {
+        fb = framebuffersQueue.back();
+        framebuffersQueue.pop_back();
+    }
+
+    framebuffers.push_back(fb);
+
+    nvgEndFrame(nvgContext);
+    nvgluSetViewFramebuffer(framebuffers.size(), fb);
+    nvgluBindFramebuffer(fb);
+    nvgBeginFrame(nvgContext, m_currentFrameSize.width * m_currentFrameScale, m_currentFrameSize.height * m_currentFrameScale, 1);
+    setCtm(_ctm * CGAffineTransform::scale(m_currentFrameScale)); // Apply previous fb ctm
+    save();
+}
+
+void CGContext::popContext(CGFloat withAlpha) {
+    restore();
+    auto _ctm = ctm();
+    nvgEndFrame(nvgContext);
+
+    NVGLUframebuffer* fb = framebuffers.back();
+    framebuffers.pop_back();
+
+    nvgluBindFramebuffer(framebuffers.empty() ? nullptr : framebuffers.back());
+
+    setCtm(CGAffineTransform::scale(m_currentFrameScale));
+    NVGpaint paint = nvgImagePattern(nvgContext, 0, 0, m_currentFrameSize.width, m_currentFrameSize.height, 0, fb->image, withAlpha);
+    nvgBeginPath(nvgContext);
+    nvgRect(nvgContext, 0, 0, m_currentFrameSize.width, m_currentFrameSize.height);
+    nvgFillPaint(nvgContext, paint);
+    nvgFill(nvgContext);
+    nvgEndFrame(nvgContext);
+    bgfx::frame();
+
+    framebuffersQueue.push_back(fb);
+//    nvgluDeleteFramebuffer(fb);
+
+//    setCtm(_ctm);
+    restore();
 }
 
 void CGContext::beginPath() const {
