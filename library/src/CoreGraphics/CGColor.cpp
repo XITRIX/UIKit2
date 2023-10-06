@@ -8,6 +8,7 @@ CGColor CGColor::clear(0, 0, 0, 0);
 CGColor CGColor::white(255, 255, 255);
 CGColor CGColor::black(0, 0, 0);
 CGColor CGColor::red(255, 0, 0);
+CGColor CGColor::green(0, 255, 0);
 CGColor CGColor::yellow(255, 255, 0);
 CGColor CGColor::orange(255, 155, 0);
 

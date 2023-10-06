@@ -17,6 +17,7 @@ public:
     static CGColor black;
     static CGColor white;
     static CGColor red;
+    static CGColor green;
     static CGColor yellow;
     static CGColor orange;
 
