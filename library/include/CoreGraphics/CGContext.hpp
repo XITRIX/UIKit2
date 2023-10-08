@@ -14,7 +14,7 @@ class CGContext {
 public:
     static CGContext* current;
 
-    CGContext();
+    CGContext(bgfx::ViewId viewId);
     ~CGContext();
 
     void save() const;
@@ -51,6 +51,7 @@ public:
     void drawImage(int imgTextureID, CGRect atRect) const;
 
 private:
+    bgfx::ViewId rootViewId;
     NVGcontext* nvgContext = nullptr;
 
     CGSize m_currentFrameSize;
@@ -58,5 +59,6 @@ private:
 
 //    std::vector<NVGcontext *> contexts;
     std::vector<NVGLUframebuffer*> framebuffers;
-    std::vector<NVGLUframebuffer*> framebuffersQueue;
+//    std::vector<NVGLUframebuffer*> framebuffersQueue;
+    int fbCounter = 0;
 };

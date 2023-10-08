@@ -124,14 +124,10 @@ SDLVideo::SDLVideo() {
     if (!bgfx::init(init)) {
         return;
     }
-
-    // Set view 0 to the same dimensions as the window and to clear the color buffer.
-    bgfx::setViewClear(kClearView, BGFX_CLEAR_COLOR);
-    bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
     
     isInitialized = true;
 
-    auto _context = new CGContext();
+    auto _context = new CGContext(kClearView);
     CGContext::current = _context;
 }
 
@@ -215,6 +211,7 @@ void SDLVideo::update() {
 
     // This dummy draw call is here to make sure that view 0 is cleared if no other draw calls are submitted to view 0.
     bgfx::touch(kClearView);
+    bgfx::setViewClear(kClearView, BGFX_CLEAR_COLOR);
 
 //    bgfx::tex
     float scale = (float) width / (float) dw;

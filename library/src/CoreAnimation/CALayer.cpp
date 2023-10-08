@@ -95,7 +95,10 @@ void CALayer::draw() {
     // Big performance optimization. Don't render anything that's entirely offscreen:
     auto rendererBounds = CGRect(0, 0, (CGFloat) context->width(), (CGFloat) context->height());
     auto absoluteFrame = renderedBoundsRelativeToAnchorPoint.applying(modelViewTransform);
-    if (!absoluteFrame.intersects(rendererBounds)) { return; }
+    if (!absoluteFrame.intersects(rendererBounds)) {
+        if (contextPushed) { context->popContext(m_opacity); }
+        return context->restore();
+    }
 
     context->setCtm(CATransform3DGetAffineTransform(modelViewTransform));
 

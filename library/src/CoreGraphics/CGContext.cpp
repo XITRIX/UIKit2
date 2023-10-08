@@ -8,9 +8,15 @@
 
 CGContext* CGContext::current = nullptr;
 
-CGContext::CGContext() {
-    nvgContext = nvgCreate(1, 0);
-    bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
+CGContext::CGContext(bgfx::ViewId viewId) {
+    // Set view 0 to the same dimensions as the window and to clear the color buffer.
+    bgfx::setViewClear(viewId, BGFX_CLEAR_COLOR);
+    bgfx::setViewRect(viewId, 0, 0, bgfx::BackbufferRatio::Equal);
+
+    nvgContext = nvgCreate(1, viewId);
+    bgfx::setViewMode(viewId, bgfx::ViewMode::Sequential);
+
+    rootViewId = viewId;
 //    contexts.push_back(nvgContext);
 }
 
@@ -31,12 +37,12 @@ void CGContext::beginFrame(int windowWidth, int windowHeight, CGFloat devicePixe
     nvgScale(nvgContext, devicePixelRatio, devicePixelRatio);
 
     CGSize newFrameSize = { (CGFloat) windowWidth, (CGFloat) windowHeight };
-    if (m_currentFrameSize != newFrameSize) {
-        for (auto fb : framebuffersQueue) {
-            nvgluDeleteFramebuffer(fb);
-        }
-        framebuffersQueue.clear();
-    }
+//    if (m_currentFrameSize != newFrameSize) {
+//        for (auto fb : framebuffersQueue) {
+//            nvgluDeleteFramebuffer(fb);
+//        }
+//        framebuffersQueue.clear();
+//    }
 
     m_currentFrameSize = newFrameSize;
     m_currentFrameScale = devicePixelRatio;
@@ -46,6 +52,12 @@ void CGContext::beginFrame(int windowWidth, int windowHeight, CGFloat devicePixe
 
 void CGContext::endFrame() {
     nvgEndFrame(nvgContext);
+
+    for (auto fb: framebuffers) {
+        nvgluDeleteFramebuffer(fb);
+    }
+    framebuffers.clear();
+    fbCounter = 0;
 }
 
 void CGContext::pushContext() {
@@ -53,21 +65,30 @@ void CGContext::pushContext() {
     auto _ctm = ctm();
 
     NVGLUframebuffer* fb;
-    if (framebuffersQueue.empty()) {
+//    if (framebuffersQueue.empty()) {
         float scale = m_currentFrameScale;
         fb = nvgluCreateFramebuffer(nvgContext,
                                     (int) (m_currentFrameSize.width * scale),
                                     (int) (m_currentFrameSize.height * scale),
                                     0);
-    } else {
-        fb = framebuffersQueue.back();
-        framebuffersQueue.pop_back();
-    }
+//    } else {
+//        fb = framebuffersQueue.back();
+//        framebuffersQueue.pop_back();
+//    }
 
     framebuffers.push_back(fb);
+    fbCounter++;
 
     nvgEndFrame(nvgContext);
-    nvgluSetViewFramebuffer(framebuffers.size(), fb);
+
+    auto fbViewId = rootViewId - fbCounter;
+
+    bgfx::setViewClear(fbViewId, BGFX_CLEAR_COLOR, 0);
+    bgfx::setViewRect(fbViewId, 0, 0, bgfx::BackbufferRatio::Equal);
+
+    nvgluSetViewFramebuffer(fbViewId, fb);
+
+    save();
     nvgluBindFramebuffer(fb);
     nvgBeginFrame(nvgContext, m_currentFrameSize.width * m_currentFrameScale, m_currentFrameSize.height * m_currentFrameScale, 1);
     setCtm(_ctm * CGAffineTransform::scale(m_currentFrameScale)); // Apply previous fb ctm
@@ -83,6 +104,7 @@ void CGContext::popContext(CGFloat withAlpha) {
     framebuffers.pop_back();
 
     nvgluBindFramebuffer(framebuffers.empty() ? nullptr : framebuffers.back());
+    restore();
 
     setCtm(CGAffineTransform::scale(m_currentFrameScale));
     NVGpaint paint = nvgImagePattern(nvgContext, 0, 0, m_currentFrameSize.width, m_currentFrameSize.height, 0, fb->image, withAlpha);
@@ -91,10 +113,10 @@ void CGContext::popContext(CGFloat withAlpha) {
     nvgFillPaint(nvgContext, paint);
     nvgFill(nvgContext);
     nvgEndFrame(nvgContext);
-    bgfx::frame();
+//    bgfx::frame();
 
-    framebuffersQueue.push_back(fb);
-//    nvgluDeleteFramebuffer(fb);
+//    framebuffersQueue.push_back(fb);
+    nvgluDeleteFramebuffer(fb);
 
 //    setCtm(_ctm);
     restore();
